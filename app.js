@@ -169,8 +169,8 @@ function loadData() {
     if (storedConfig) {
         try { googleConfig = { ...googleConfig, ...JSON.parse(storedConfig) }; } catch(e) {}
     }
-    elements.googleClientId.value = googleConfig.clientId || '';
-    elements.googleApiKey.value = googleConfig.apiKey || '';
+    if (elements.googleClientId) elements.googleClientId.value = googleConfig.clientId || '';
+    if (elements.googleApiKey) elements.googleApiKey.value = googleConfig.apiKey || '';
 
     const storedClaude = localStorage.getItem(CLAUDE_CONFIG_KEY);
     if (storedClaude) {
