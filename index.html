@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Priority Scheduler - タスク＆スケジュール調整</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header glass">
+            <div class="logo-area">
+                <div class="logo-icon"><i data-lucide="sparkles"></i></div>
+                <div>
+                    <h1>Priority Scheduler</h1>
+                    <p class="subtitle">重要度・期限・メール返信に基づくスケジュール最適化</p>
+                </div>
+            </div>
+            <nav class="nav-tabs">
+                <button id="tab-today" class="nav-tab active"><i data-lucide="clock"></i> 本日の予定</button>
+                <button id="tab-calendar" class="nav-tab"><i data-lucide="calendar"></i> カレンダー</button>
+                <button id="tab-settings" class="nav-tab"><i data-lucide="settings"></i> 設定</button>
+            </nav>
+            <button id="btn-new-item" class="btn btn-primary">
+                <i data-lucide="plus-circle"></i> 新規作成
+            </button>
+        </header>
+
+        <main class="app-main">
+
+            <!-- 本日の予定ビュー -->
+            <div id="view-today" class="view-container">
+                <div class="today-grid">
+                    <section class="timeline-panel glass">
+                        <div class="panel-header">
+                            <h2><i data-lucide="activity"></i> 本日のスケジュール</h2>
+                            <span class="date-badge" id="timeline-date-badge">読み込み中...</span>
+                        </div>
+                        <div class="timeline-scroll-wrapper">
+                            <div class="timeline-container" id="timeline-container"></div>
+                        </div>
+                    </section>
+
+                    <section class="dashboard-panel glass">
+                        <div class="panel-header">
+                            <h2><i data-lucide="list-todo"></i> タスク管理</h2>
+                            <div class="panel-header-actions">
+                                <div class="google-sync-badge hidden" id="google-sync-status">
+                                    <i data-lucide="refresh-cw" class="spinning"></i> 同期中
+                                </div>
+                                <button id="btn-ai-suggest" class="btn btn-ai">
+                                    <i data-lucide="sparkles"></i> AIスケジュール提案
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="overdue-section" class="task-section overdue glass-alert hidden">
+                            <div class="section-title-wrapper">
+                                <div class="title-with-badge">
+                                    <i data-lucide="alert-triangle" class="icon-alert"></i>
+                                    <h3>期限切れの未完了タスク</h3>
+                                    <span class="badge badge-alert" id="overdue-count">0</span>
+                                </div>
+                                <button id="btn-toggle-overdue" class="btn btn-icon-text">
+                                    <i data-lucide="eye-off" id="toggle-overdue-icon"></i>
+                                    <span id="toggle-overdue-text">非表示にする</span>
+                                </button>
+                            </div>
+                            <div id="overdue-list" class="task-list"></div>
+                        </div>
+
+                        <div class="task-section">
+                            <div class="section-title-wrapper">
+                                <h3>今日までに行うこと</h3>
+                                <span class="badge badge-today" id="today-count">0</span>
+                            </div>
+                            <div id="today-list" class="task-list"></div>
+                        </div>
+
+                        <div class="task-section">
+                            <div class="section-title-wrapper">
+                                <h3>重要度【高】のタスク (期日前)</h3>
+                                <span class="badge badge-high" id="high-priority-count">0</span>
+                            </div>
+                            <div id="high-priority-list" class="task-list"></div>
+                        </div>
+
+                        <div class="task-section">
+                            <div class="section-title-wrapper">
+                                <h3>明日以降に行うこと</h3>
+                                <span class="badge badge-future" id="future-count">0</span>
+                            </div>
+                            <div id="future-list" class="task-list"></div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- カレンダービュー -->
+            <div id="view-calendar" class="view-container hidden-view">
+                <section class="calendar-panel glass">
+                    <div class="panel-header">
+                        <h2><i data-lucide="calendar-range"></i> カレンダー</h2>
+                        <div class="calendar-controls">
+                            <div class="toggle-group">
+                                <button id="btn-month-view" class="btn-toggle active">月</button>
+                                <button id="btn-week-view" class="btn-toggle">週</button>
+                            </div>
+                            <div class="nav-group">
+                                <button id="btn-prev-period" class="btn btn-icon"><i data-lucide="chevron-left"></i></button>
+                                <span id="calendar-period-label" class="period-label">読み込み中...</span>
+                                <button id="btn-next-period" class="btn btn-icon"><i data-lucide="chevron-right"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="calendar-container">
+                        <div class="calendar-weekdays" id="calendar-weekdays"></div>
+                        <div class="calendar-grid" id="calendar-grid"></div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- 設定ビュー -->
+            <div id="view-settings" class="view-container hidden-view">
+                <section class="settings-panel glass">
+                    <div class="panel-header">
+                        <h2><i data-lucide="sliders"></i> 連携および各種設定</h2>
+                    </div>
+                    <div class="settings-content">
+
+                        <!-- Google API 設定 -->
+                        <div class="settings-card">
+                            <h3><i data-lucide="chrome"></i> Google API 連携設定</h3>
+                            <p class="settings-desc">GoogleカレンダーおよびGmailと接続するためのAPI情報を設定します。情報はご自身のブラウザ内にのみ安全に保存されます。</p>
+                            <form id="google-settings-form">
+                                <div id="google-credentials-inputs">
+                                    <div class="form-group">
+                                        <label for="google-client-id">Google API Client ID</label>
+                                        <input type="text" id="google-client-id" placeholder="xxxxxxxxxx.apps.googleusercontent.com">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="google-api-key">Google API Key</label>
+                                        <input type="text" id="google-api-key" placeholder="AIzaSy...">
+                                    </div>
+                                    <button type="button" id="btn-google-auth" class="btn btn-secondary">
+                                        <i data-lucide="log-in"></i> Google アカウントと連携する
+                                    </button>
+                                </div>
+                                <button type="submit" class="btn btn-primary mt-12">設定を保存する</button>
+                            </form>
+                        </div>
+
+                        <!-- Claude AI 設定 -->
+                        <div class="settings-card mt-24">
+                            <h3><i data-lucide="sparkles"></i> Claude AI 設定</h3>
+                            <p class="settings-desc">
+                                AIスケジュール提案・メール解析機能に使用する Claude API キーを設定します。
+                                キーは <a href="https://console.anthropic.com" target="_blank" style="color:var(--color-primary);">console.anthropic.com</a> から取得できます。
+                                情報はブラウザ内にのみ保存されます。
+                            </p>
+                            <div class="form-group">
+                                <label for="claude-api-key">Claude API Key</label>
+                                <input type="password" id="claude-api-key" placeholder="sk-ant-api03-...">
+                                <span class="help-text">※ APIキーはブラウザのローカルストレージにのみ保存され、Claude API呼び出し時にのみ使用されます</span>
+                            </div>
+                            <button type="button" id="btn-save-claude-key" class="btn btn-primary">
+                                <i data-lucide="save"></i> 保存する
+                            </button>
+                        </div>
+
+                        <!-- メールから予定を取得 -->
+                        <div class="settings-card mt-24">
+                            <h3><i data-lucide="mail-search"></i> メールから予定を自動取得</h3>
+                            <p class="settings-desc">
+                                Gmailの未読メールをAIが自動解析し、日程・会議・イベントなどの予定を検出してカレンダーに追加します。
+                                Google連携とClaude APIキーの両方が必要です。
+                            </p>
+                            <button type="button" id="btn-parse-emails" class="btn btn-ai">
+                                <i data-lucide="mail-search"></i> メールから予定を取得
+                            </button>
+                        </div>
+
+                        <!-- 使い方 -->
+                        <div class="settings-card mt-24">
+                            <h3><i data-lucide="help-circle"></i> このアプリの使い方</h3>
+                            <div class="instructions-list">
+                                <div class="inst-item">
+                                    <span class="number">1</span>
+                                    <div>
+                                        <h4>予定とタスクの使い分け</h4>
+                                        <p><strong>「予定」</strong>は会議や面談など特定の時間枠を占有するもの。<strong>「タスク」</strong>は重要度や期日に基づいて優先度が決まるやるべきことです。</p>
+                                    </div>
+                                </div>
+                                <div class="inst-item">
+                                    <span class="number">2</span>
+                                    <div>
+                                        <h4>AIスケジュール提案</h4>
+                                        <p>「本日の予定」タブの「AIスケジュール提案」ボタンを押すと、登録済みのタスクと予定をAIが分析し、最適な作業時間帯を提案します。</p>
+                                    </div>
+                                </div>
+                                <div class="inst-item">
+                                    <span class="number">3</span>
+                                    <div>
+                                        <h4>メールから予定を自動取得</h4>
+                                        <p>設定画面の「メールから予定を取得」ボタンで、Gmailの未読メールをAIが解析し、含まれる日程をカレンダーに自動追加できます。</p>
+                                    </div>
+                                </div>
+                                <div class="inst-item">
+                                    <span class="number">4</span>
+                                    <div>
+                                        <h4>Gmail連携と返信処理</h4>
+                                        <p>フィードバックが必要なタスクには「返信する」ボタンが表示され、件名と宛先が入ったGmail送信画面が直接開きます。</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- タスク・予定 作成/編集モーダル -->
+    <div id="item-modal" class="modal-overlay hidden">
+        <div class="modal-content glass">
+            <div class="modal-header">
+                <h2 id="modal-title"><i data-lucide="plus-circle"></i> 新規アイテム作成</h2>
+                <button id="btn-close-modal" class="btn btn-icon"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-tab-group">
+                <button type="button" id="modal-tab-task" class="modal-tab active">タスクを登録</button>
+                <button type="button" id="modal-tab-event" class="modal-tab">予定を登録</button>
+            </div>
+            <form id="item-form">
+                <input type="hidden" id="item-id">
+                <input type="hidden" id="item-type" value="task">
+                <div class="form-group">
+                    <label for="item-title">タイトル <span class="required">*</span></label>
+                    <input type="text" id="item-title" required placeholder="名称を入力してください">
+                </div>
+                <div class="form-group">
+                    <label for="item-desc">説明（詳細）</label>
+                    <textarea id="item-desc" rows="3" placeholder="詳細やメモを入力してください"></textarea>
+                </div>
+                <div id="fields-task">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="task-due">締め切り日 <span class="required">*</span></label>
+                            <input type="date" id="task-due">
+                        </div>
+                        <div class="form-group">
+                            <label for="task-repeat">繰り返し設定</label>
+                            <select id="task-repeat">
+                                <option value="none">その日のみ</option>
+                                <option value="weekly">毎週</option>
+                                <option value="biweekly">隔週</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group" id="time-settings-group">
+                        <label>時間設定</label>
+                        <div class="radio-toggle-group">
+                            <label class="radio-label">
+                                <input type="radio" name="time-type" value="allday" checked>
+                                <span>その日中 (終日)</span>
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="time-type" value="specific">
+                                <span>時間指定</span>
+                            </label>
+                        </div>
+                        <div id="specific-time-input-wrapper" class="hidden">
+                            <input type="time" id="task-time" value="09:00">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>重要度 <span class="required">*</span></label>
+                            <div class="priority-selector">
+                                <label class="priority-option priority-low">
+                                    <input type="radio" name="task-priority" value="low" checked>
+                                    <span class="priority-dot"></span><span>低</span>
+                                </label>
+                                <label class="priority-option priority-medium">
+                                    <input type="radio" name="task-priority" value="medium">
+                                    <span class="priority-dot"></span><span>中</span>
+                                </label>
+                                <label class="priority-option priority-high">
+                                    <input type="radio" name="task-priority" value="high">
+                                    <span class="priority-dot"></span><span>高</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group flex-align-end">
+                            <label class="checkbox-label glass-checkbox">
+                                <input type="checkbox" id="task-feedback">
+                                <span class="custom-checkbox"></span>
+                                <span><i data-lucide="message-square-text" class="inline-icon"></i> フィードバック要 (返信要)</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group" id="gmail-association-group">
+                        <label for="task-email-to">関連する返信先メールアドレス（任意）</label>
+                        <input type="text" id="task-email-to" placeholder="example@example.com">
+                    </div>
+                </div>
+                <div id="fields-event" class="hidden">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="event-date">日付 <span class="required">*</span></label>
+                            <input type="date" id="event-date">
+                        </div>
+                        <div class="form-group">
+                            <label for="event-sync-google">Google連携</label>
+                            <label class="checkbox-label mt-8">
+                                <input type="checkbox" id="event-sync-google" checked>
+                                <span class="custom-checkbox"></span>
+                                <span>Googleカレンダーに同期</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="event-start-time">開始時刻 <span class="required">*</span></label>
+                            <input type="time" id="event-start-time" value="10:00">
+                        </div>
+                        <div class="form-group">
+                            <label for="event-end-time">終了時刻 <span class="required">*</span></label>
+                            <input type="time" id="event-end-time" value="11:00">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="btn-delete-item" class="btn btn-danger hidden">
+                        <i data-lucide="trash-2"></i> 削除
+                    </button>
+                    <div class="footer-right">
+                        <button type="button" id="btn-cancel" class="btn btn-secondary">キャンセル</button>
+                        <button type="submit" id="btn-save" class="btn btn-primary">保存する</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- AIスケジュール提案モーダル -->
+    <div id="ai-suggest-modal" class="modal-overlay hidden">
+        <div class="modal-content modal-wide glass">
+            <div class="modal-header">
+                <h2><i data-lucide="sparkles"></i> AIスケジュール提案</h2>
+                <button id="btn-close-ai-modal" class="btn btn-icon"><i data-lucide="x"></i></button>
+            </div>
+            <div id="ai-suggest-content" class="ai-modal-body">
+                <div class="ai-loading">
+                    <i data-lucide="loader-2" class="spinning"></i>
+                    <p>AIが分析中です...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- メール解析モーダル -->
+    <div id="email-parse-modal" class="modal-overlay hidden">
+        <div class="modal-content modal-wide glass">
+            <div class="modal-header">
+                <h2><i data-lucide="mail-search"></i> メールから検出された予定</h2>
+                <button id="btn-close-email-modal" class="btn btn-icon"><i data-lucide="x"></i></button>
+            </div>
+            <div id="email-parse-content" class="ai-modal-body">
+                <div class="ai-loading">
+                    <i data-lucide="loader-2" class="spinning"></i>
+                    <p>メールを解析中です...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script async defer src="https://apis.google.com/js/api.js"></script>
+    <script async defer src="https://accounts.google.com/gsi/client"></script>
+    <script src="app.js"></script>
+</body>
+</html>
