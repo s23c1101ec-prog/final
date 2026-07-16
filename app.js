@@ -507,6 +507,8 @@ function renderCalendar() {
 
 function renderMonthView() {
     elements.calendarGrid.classList.remove('week-view');
+    elements.calendarGrid.innerHTML = '';
+    elements.calendarWeekdays.innerHTML = '';
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
     elements.calendarPeriodLabel.textContent = `${year}年${month + 1}月`;
@@ -520,44 +522,82 @@ function renderMonthView() {
         if (!byDate[inst.occurrenceDate]) byDate[inst.occurrenceDate] = [];
         byDate[inst.occurrenceDate].push(inst);
     });
-    let d = new Date(startDate);
     const todayStr = getTodayString();
-    for (let i = 0; i < 42; i++) {
-        const dateStr = formatDateString(d);
-        const dayCell = document.createElement('div');
-        dayCell.className = 'calendar-day';
-        if (d.getMonth() !== month) dayCell.classList.add(d.getMonth() < month ? 'prev-month' : 'next-month');
-        if (dateStr === todayStr) dayCell.classList.add('today');
-        dayCell.innerHTML = `<div class="day-header"><span class="day-number">${d.getDate()}</span></div><div class="calendar-tasks"></div>`;
-        const tasksContainer = dayCell.querySelector('.calendar-tasks');
-        const dayInsts = byDate[dateStr] || [];
-        dayInsts.sort((a, b) => {
-            if (a.type !== b.type) return a.type === 'event' ? -1 : 1;
-            const timeA = a.type === 'event' ? a.startTime : (a.timeType === 'specific' ? a.time : '24:00');
-            const timeB = b.type === 'event' ? b.startTime : (b.timeType === 'specific' ? b.time : '24:00');
-            return timeA.localeCompare(timeB);
-        });
-        dayInsts.forEach(inst => {
-            const item = document.createElement('div');
-            item.className = 'cal-task-item';
-            if (inst.type === 'event') item.classList.add(inst.isGoogleEvent ? 'google-event-item' : 'event-item');
-            else { item.classList.add(`priority-${inst.priority}`); if (inst.isInstanceCompleted) item.classList.add('completed'); }
-            let label = inst.type === 'event'
-                ? `📅 [${inst.startTime}] ${inst.title}`
-                : `${inst.feedbackRequired ? '💬 ' : ''}${inst.timeType === 'specific' && inst.time ? `[${inst.time}] ` : ''}${inst.title}`;
-            item.innerHTML = `<span>${escapeHTML(label)}</span>`;
-            item.addEventListener('click', (e) => { e.stopPropagation(); if (!inst.isGoogleEvent) openModal(inst.id, dateStr, inst.type); });
-            tasksContainer.appendChild(item);
-        });
-        const targetDateVal = dateStr;
-        dayCell.addEventListener('click', () => openModal(null, targetDateVal, 'task'));
-        elements.calendarGrid.appendChild(dayCell);
-        d.setDate(d.getDate() + 1);
+
+    // テーブル形式でカレンダーを構築
+    const table = document.createElement('table');
+    table.className = 'cal-table';
+
+    // ヘッダー行
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    WEEKDAYS_JP.forEach((day, i) => {
+        const th = document.createElement('th');
+        th.textContent = day;
+        if (i === 0) th.classList.add('weekday-sun');
+        if (i === 6) th.classList.add('weekday-sat');
+        headerRow.appendChild(th);
+    });
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    // データ行
+    const tbody = document.createElement('tbody');
+    let d = new Date(startDate);
+    for (let week = 0; week < 6; week++) {
+        const tr = document.createElement('tr');
+        for (let day = 0; day < 7; day++) {
+            const dateStr = formatDateString(d);
+            const td = document.createElement('td');
+            td.className = 'calendar-day';
+            if (d.getMonth() !== month) td.classList.add(d.getMonth() < month ? 'prev-month' : 'next-month');
+            if (dateStr === todayStr) td.classList.add('today');
+            if (day === 0) td.classList.add('day-sun');
+            if (day === 6) td.classList.add('day-sat');
+
+            const dayHeader = document.createElement('div');
+            dayHeader.className = 'day-header';
+            dayHeader.innerHTML = `<span class="day-number">${d.getDate()}</span>`;
+            td.appendChild(dayHeader);
+
+            const tasksContainer = document.createElement('div');
+            tasksContainer.className = 'calendar-tasks';
+            const dayInsts = byDate[dateStr] || [];
+            dayInsts.sort((a, b) => {
+                if (a.type !== b.type) return a.type === 'event' ? -1 : 1;
+                const timeA = a.type === 'event' ? a.startTime : (a.timeType === 'specific' ? a.time : '24:00');
+                const timeB = b.type === 'event' ? b.startTime : (b.timeType === 'specific' ? b.time : '24:00');
+                return timeA.localeCompare(timeB);
+            });
+            dayInsts.forEach(inst => {
+                const item = document.createElement('div');
+                item.className = 'cal-task-item';
+                if (inst.type === 'event') item.classList.add(inst.isGoogleEvent ? 'google-event-item' : 'event-item');
+                else { item.classList.add(`priority-${inst.priority}`); if (inst.isInstanceCompleted) item.classList.add('completed'); }
+                let label = inst.type === 'event'
+                    ? `[${inst.startTime}] ${inst.title}`
+                    : `${inst.feedbackRequired ? '💬 ' : ''}${inst.timeType === 'specific' && inst.time ? `[${inst.time}] ` : ''}${inst.title}`;
+                item.innerHTML = `<span>${escapeHTML(label)}</span>`;
+                item.addEventListener('click', (e) => { e.stopPropagation(); if (!inst.isGoogleEvent) openModal(inst.id, dateStr, inst.type); });
+                tasksContainer.appendChild(item);
+            });
+            td.appendChild(tasksContainer);
+            const targetDateVal = dateStr;
+            td.addEventListener('click', () => openModal(null, targetDateVal, 'task'));
+            tr.appendChild(td);
+            d.setDate(d.getDate() + 1);
+        }
+        tbody.appendChild(tr);
     }
+    table.appendChild(tbody);
+    elements.calendarGrid.appendChild(table);
 }
+
 
 function renderWeekView() {
     elements.calendarGrid.classList.add('week-view');
+    elements.calendarGrid.innerHTML = '';
+    elements.calendarWeekdays.innerHTML = '';
     const todayStr = getTodayString();
     const dayOfWeek = currentDate.getDay();
     const sunday = new Date(currentDate);
@@ -571,14 +611,42 @@ function renderWeekView() {
         if (!byDate[inst.occurrenceDate]) byDate[inst.occurrenceDate] = [];
         byDate[inst.occurrenceDate].push(inst);
     });
+
+    // 週表示もテーブル形式で構築
+    const table = document.createElement('table');
+    table.className = 'cal-table cal-table-week';
+
+    // ヘッダー行（曜日 + 日付）
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    let dh = new Date(sunday);
+    for (let i = 0; i < 7; i++) {
+        const th = document.createElement('th');
+        const dateStr = formatDateString(dh);
+        th.innerHTML = `<span class="week-day-label">${WEEKDAYS_JP[i]}</span><span class="week-date-label${dateStr === todayStr ? ' today-label' : ''}">${dh.getMonth()+1}/${dh.getDate()}</span>`;
+        if (i === 0) th.classList.add('weekday-sun');
+        if (i === 6) th.classList.add('weekday-sat');
+        if (dateStr === todayStr) th.classList.add('today-header');
+        headerRow.appendChild(th);
+        dh.setDate(dh.getDate() + 1);
+    }
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    // データ行（1行で7列）
+    const tbody = document.createElement('tbody');
+    const tr = document.createElement('tr');
     let d = new Date(sunday);
     for (let i = 0; i < 7; i++) {
         const dateStr = formatDateString(d);
-        const dayCell = document.createElement('div');
-        dayCell.className = 'calendar-day';
-        if (dateStr === todayStr) dayCell.classList.add('today');
-        dayCell.innerHTML = `<div class="day-header"><span class="day-number">${d.getDate()}日 (${WEEKDAYS_JP[d.getDay()]})</span></div><div class="calendar-tasks"></div>`;
-        const tasksContainer = dayCell.querySelector('.calendar-tasks');
+        const td = document.createElement('td');
+        td.className = 'calendar-day week-day-cell';
+        if (dateStr === todayStr) td.classList.add('today');
+        if (i === 0) td.classList.add('day-sun');
+        if (i === 6) td.classList.add('day-sat');
+
+        const tasksContainer = document.createElement('div');
+        tasksContainer.className = 'calendar-tasks';
         const dayInsts = byDate[dateStr] || [];
         dayInsts.sort((a, b) => {
             if (a.type !== b.type) return a.type === 'event' ? -1 : 1;
@@ -589,23 +657,28 @@ function renderWeekView() {
         dayInsts.forEach(inst => {
             const item = document.createElement('div');
             item.className = 'cal-task-item';
-            item.style.cssText = 'white-space:normal;padding:4px 6px;min-height:36px;';
+            item.style.cssText = 'white-space:normal;padding:5px 8px;min-height:32px;margin-bottom:4px;';
             if (inst.type === 'event') item.classList.add(inst.isGoogleEvent ? 'google-event-item' : 'event-item');
             else { item.classList.add(`priority-${inst.priority}`); if (inst.isInstanceCompleted) item.classList.add('completed'); }
             let label = inst.type === 'event'
-                ? `📅 [${inst.startTime}-${inst.endTime}] ${inst.title}`
+                ? `[${inst.startTime}-${inst.endTime}] ${inst.title}`
                 : `${inst.timeType === 'specific' && inst.time ? `[${inst.time}] ` : ''}${inst.title}`;
             let fbIcon = (inst.type === 'task' && inst.feedbackRequired) ? '<i data-lucide="message-square-text" class="cal-feedback-star" style="margin-right:3px;"></i>' : '';
             item.innerHTML = `<div style="display:flex;align-items:flex-start;">${fbIcon}<span style="font-weight:600;">${escapeHTML(label)}</span></div>`;
             item.addEventListener('click', (e) => { e.stopPropagation(); if (!inst.isGoogleEvent) openModal(inst.id, dateStr, inst.type); });
             tasksContainer.appendChild(item);
         });
+        td.appendChild(tasksContainer);
         const targetDateVal = dateStr;
-        dayCell.addEventListener('click', () => openModal(null, targetDateVal, 'task'));
-        elements.calendarGrid.appendChild(dayCell);
+        td.addEventListener('click', () => openModal(null, targetDateVal, 'task'));
+        tr.appendChild(td);
         d.setDate(d.getDate() + 1);
     }
+    tbody.appendChild(tr);
+    table.appendChild(tbody);
+    elements.calendarGrid.appendChild(table);
 }
+
 
 // ------------------------------------------
 // 10. モーダル操作
