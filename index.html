@@ -25,10 +25,13 @@
                 <button id="tab-calendar" class="nav-tab"><i data-lucide="calendar"></i> カレンダー</button>
                 <button id="tab-settings" class="nav-tab"><i data-lucide="settings"></i> 設定</button>
             </nav>
-            <button id="btn-new-item" class="btn btn-primary">
-                <i data-lucide="plus-circle"></i> 新規作成
-            </button>
         </header>
+
+        <!-- 固定フローティングボタン（常に右上表示） -->
+        <button id="btn-new-item" class="btn-fab" title="新規予定・タスクを追加">
+            <span class="fab-icon"><i data-lucide="plus"></i></span>
+            <span class="fab-label">新規作成</span>
+        </button>
 
         <main class="app-main">
 
@@ -381,8 +384,4 @@
         </div>
     </div>
 
-    <script async defer src="https://apis.google.com/js/api.js"></script>
-    <script async defer src="https://accounts.google.com/gsi/client"></script>
-    <script src="app.js"></script>
-</body>
-</html>
+    <script async defer src="https://
