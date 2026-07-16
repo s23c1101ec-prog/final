@@ -1,262 +1,313 @@
 
-
 /* ==========================================
-   AI機能 追加スタイル (V3)
+   V4: カラフルUI + テーブルカレンダー
    ========================================== */
 
-/* パネルヘッダーのアクション群 */
-.panel-header-actions {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+/* ---- グローバルカラーパレット拡張 ---- */
+:root {
+    --color-sun: #ef4444;
+    --color-sat: #3b82f6;
+    --cal-today-bg: linear-gradient(135deg, #6366f1, #8b5cf6);
+    --cal-border: #e2e8f0;
+    --cal-header-bg: linear-gradient(135deg, #4f46e5, #7c3aed, #a21caf);
 }
 
-/* AI提案ボタン */
+/* ======================================
+   ヘッダー：カラフルグラデーション
+   ====================================== */
+.app-header {
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 25%, #4c1d95 50%, #5b21b6 75%, #7c3aed 100%) !important;
+    border-bottom: none !important;
+    box-shadow: 0 4px 24px rgba(99, 102, 241, 0.4) !important;
+}
+.app-header h1 { color: #fff !important; text-shadow: 0 1px 4px rgba(0,0,0,0.3) !important; }
+.app-header .subtitle { color: rgba(255,255,255,0.8) !important; }
+.logo-icon {
+    background: rgba(255,255,255,0.15) !important;
+    color: #fff !important;
+    box-shadow: 0 2px 12px rgba(255,255,255,0.1) !important;
+}
+
+/* ナビタブ */
+.nav-tab {
+    color: rgba(255,255,255,0.75) !important;
+    border-bottom: 3px solid transparent !important;
+    transition: all 0.2s !important;
+}
+.nav-tab:hover {
+    background: rgba(255,255,255,0.12) !important;
+    color: #fff !important;
+}
+.nav-tab.active {
+    background: rgba(255,255,255,0.18) !important;
+    color: #fff !important;
+    border-bottom: 3px solid #a5f3fc !important;
+    font-weight: 700 !important;
+}
+
+/* 新規作成ボタン */
+#btn-new-item {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+    border: none !important;
+    box-shadow: 0 4px 14px rgba(16,185,129,0.4) !important;
+}
+#btn-new-item:hover {
+    box-shadow: 0 6px 20px rgba(16,185,129,0.55) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* ======================================
+   パネルヘッダー
+   ====================================== */
+.panel-header {
+    background: linear-gradient(90deg, rgba(99,102,241,0.07), rgba(139,92,246,0.03)) !important;
+    border-bottom: 2px solid !important;
+    border-image: linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899, transparent) 1 !important;
+    padding-bottom: 14px !important;
+}
+.panel-header h2 {
+    color: #4f46e5 !important;
+    font-weight: 800 !important;
+}
+.panel-header h2 i { color: #8b5cf6 !important; }
+
+/* ======================================
+   タスクセクション見出し
+   ====================================== */
+.task-section:nth-child(1) .section-title-wrapper h3 { color: #dc2626; }
+.task-section:nth-child(2) .section-title-wrapper h3 { color: #d97706; }
+.task-section:nth-child(3) .section-title-wrapper h3 { color: #7c3aed; }
+.task-section:nth-child(4) .section-title-wrapper h3 { color: #2563eb; }
+
+/* バッジ */
+.badge-today { background: linear-gradient(135deg, #f59e0b, #ef4444) !important; box-shadow: 0 2px 8px rgba(239,68,68,0.35) !important; }
+.badge-high  { background: linear-gradient(135deg, #ef4444, #dc2626) !important; box-shadow: 0 2px 8px rgba(220,38,38,0.35) !important; }
+.badge-alert { background: linear-gradient(135deg, #f97316, #ef4444) !important; }
+.badge-future{ background: linear-gradient(135deg, #3b82f6, #6366f1) !important; box-shadow: 0 2px 8px rgba(99,102,241,0.35) !important; }
+
+/* タスクカード優先度ボーダー */
+.task-card { border-left: 4px solid transparent !important; }
+.task-card.priority-high   { border-left-color: #ef4444 !important; }
+.task-card.priority-medium { border-left-color: #f59e0b !important; }
+.task-card.priority-low    { border-left-color: #10b981 !important; }
+
+/* ======================================
+   カレンダーコンテナ
+   ====================================== */
+.calendar-container {
+    overflow-x: auto;
+    padding: 0 !important;
+}
+/* 既存のグリッドを非表示にして table に任せる */
+.calendar-weekdays { display: none !important; }
+.calendar-grid {
+    display: block !important;
+    padding: 0 !important;
+}
+
+/* ======================================
+   カレンダー テーブル本体
+   ====================================== */
+.cal-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(99,102,241,0.12);
+}
+
+/* ヘッダー行 */
+.cal-table thead tr {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed, #a21caf);
+}
+.cal-table thead th {
+    padding: 12px 4px;
+    text-align: center;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.04em;
+    border: none;
+}
+.cal-table thead th.weekday-sun { color: #fca5a5; }
+.cal-table thead th.weekday-sat { color: #93c5fd; }
+
+/* 週ヘッダー（週表示用）*/
+.week-day-label { display: block; font-size: 0.78rem; font-weight: 800; }
+.week-date-label { display: block; font-size: 0.92rem; font-weight: 600; margin-top: 2px; }
+.week-date-label.today-label {
+    background: rgba(255,255,255,0.3);
+    border-radius: 6px;
+    padding: 1px 8px;
+}
+.today-header { background: rgba(255,255,255,0.1); }
+
+/* セル共通 */
+.cal-table tbody td {
+    vertical-align: top;
+    padding: 0;
+    border: 1px solid #e2e8f0;
+    min-height: 90px;
+    cursor: pointer;
+    transition: background 0.15s;
+    background: #fff;
+}
+.cal-table tbody td:hover { background: #f5f3ff; }
+
+/* 日番号 */
+.cal-table .day-header {
+    padding: 6px 8px 4px;
+    border-bottom: 1px solid #f1f5f9;
+}
+.cal-table .day-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #334155;
+    border-radius: 50%;
+}
+
+/* 今日 */
+.cal-table tbody td.today {
+    background: linear-gradient(180deg, #f0f4ff, #fff) !important;
+}
+.cal-table tbody td.today .day-number {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(99,102,241,0.4);
+}
+
+/* 前月・翌月 */
+.cal-table tbody td.prev-month,
+.cal-table tbody td.next-month {
+    background: #f8fafc !important;
+}
+.cal-table tbody td.prev-month .day-number,
+.cal-table tbody td.next-month .day-number { color: #cbd5e1; }
+
+/* 日曜・土曜 */
+.cal-table tbody td.day-sun .day-number { color: #ef4444; }
+.cal-table tbody td.day-sat .day-number { color: #3b82f6; }
+
+/* カレンダー内タスクアイテム */
+.cal-table .calendar-tasks { padding: 3px 4px 6px; }
+.cal-table .cal-task-item {
+    font-size: 0.72rem;
+    border-radius: 4px;
+    padding: 2px 5px;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 600;
+}
+.cal-table .cal-task-item.priority-high {
+    background: linear-gradient(90deg, #fee2e2, #fecaca);
+    color: #991b1b;
+    border-left: 3px solid #ef4444;
+}
+.cal-table .cal-task-item.priority-medium {
+    background: linear-gradient(90deg, #fef3c7, #fde68a);
+    color: #92400e;
+    border-left: 3px solid #f59e0b;
+}
+.cal-table .cal-task-item.priority-low {
+    background: linear-gradient(90deg, #d1fae5, #a7f3d0);
+    color: #065f46;
+    border-left: 3px solid #10b981;
+}
+.cal-table .cal-task-item.event-item {
+    background: linear-gradient(90deg, #e0e7ff, #c7d2fe);
+    color: #3730a3;
+    border-left: 3px solid #6366f1;
+}
+.cal-table .cal-task-item.google-event-item {
+    background: linear-gradient(90deg, #dcfce7, #bbf7d0);
+    color: #14532d;
+    border-left: 3px solid #22c55e;
+}
+.cal-table .cal-task-item.completed {
+    opacity: 0.45;
+    text-decoration: line-through;
+}
+
+/* 週表示セル */
+.week-day-cell {
+    min-height: 200px !important;
+    height: 200px;
+}
+.week-day-cell .calendar-tasks { padding: 6px; }
+.week-day-cell .cal-task-item {
+    white-space: normal !important;
+    margin-bottom: 4px;
+    padding: 4px 7px;
+}
+
+/* ======================================
+   AI提案ボタン（元スタイル維持＋強化）
+   ====================================== */
+.panel-header-actions { display: flex; align-items: center; gap: 10px; }
 .btn-ai {
     background: linear-gradient(135deg, #6366f1, #8b5cf6, #a855f7);
     color: #fff;
-    box-shadow: 0 4px 14px rgba(139, 92, 246, 0.3);
+    box-shadow: 0 4px 14px rgba(139,92,246,0.35);
     font-size: 0.82rem;
     padding: 8px 16px;
-    border-radius: var(--border-radius-sm);
+    border-radius: 8px;
     border: none;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     gap: 7px;
-    font-family: var(--font-outfit);
     font-weight: 700;
     transition: all 0.25s ease;
 }
-.btn-ai:hover:not(:disabled) {
-    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.45);
-    transform: translateY(-1px);
-}
-.btn-ai:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-}
+.btn-ai:hover:not(:disabled) { box-shadow: 0 6px 20px rgba(139,92,246,0.5); transform: translateY(-1px); }
+.btn-ai:disabled { opacity: 0.7; cursor: not-allowed; }
 .btn-ai i { width: 15px; height: 15px; }
 
-/* 幅広モーダル */
-.modal-wide {
-    max-width: 680px;
-}
-
-/* AIモーダル本体 */
-.ai-modal-body {
-    max-height: 65vh;
-    overflow-y: auto;
-    padding-right: 4px;
-}
-
-/* ローディング表示 */
-.ai-loading {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    padding: 48px 24px;
-    color: var(--text-muted);
-}
-.ai-loading i {
-    width: 40px;
-    height: 40px;
-    color: var(--color-primary);
-}
-.ai-loading p {
-    font-size: 0.9rem;
-    font-weight: 600;
-}
-
-/* AI空状態 */
-.ai-empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    padding: 40px 24px;
-    color: var(--text-muted);
-}
+/* ======================================
+   モーダル・AI提案（元スタイル維持）
+   ====================================== */
+.modal-wide { max-width: 680px; }
+.ai-modal-body { max-height: 65vh; overflow-y: auto; padding-right: 4px; }
+.ai-loading { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 48px 24px; color: var(--text-muted); }
+.ai-loading i { width: 40px; height: 40px; color: var(--color-primary); }
+.ai-loading p { font-size: 0.9rem; font-weight: 600; }
+.ai-empty { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 40px 24px; color: var(--text-muted); }
 .ai-empty i { width: 36px; height: 36px; }
 .ai-empty p { font-size: 0.88rem; text-align: center; line-height: 1.5; }
-
-/* AI提案説明文 */
-.ai-suggest-desc {
-    font-size: 0.84rem;
-    color: var(--text-secondary);
-    margin-bottom: 16px;
-    line-height: 1.5;
-    padding: 12px 16px;
-    background: rgba(99, 102, 241, 0.05);
-    border-radius: var(--border-radius-sm);
-    border-left: 3px solid var(--color-primary);
-}
-
-/* AI提案リスト */
-.ai-suggestions-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-/* AI提案カード */
-.ai-suggestion-card {
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: var(--border-radius-md);
-    padding: 16px 18px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    box-shadow: var(--shadow-card);
-    transition: all 0.2s ease;
-}
-.ai-suggestion-card:hover {
-    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.1);
-    border-color: rgba(99, 102, 241, 0.2);
-}
-.ai-suggestion-card.applied {
-    opacity: 0.55;
-    background: rgba(16, 185, 129, 0.04);
-    border-color: rgba(16, 185, 129, 0.2);
-}
-
-.ai-suggestion-info {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    flex: 1;
-}
-.ai-suggestion-title {
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: var(--text-primary);
-}
-.ai-suggestion-time {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.88rem;
-    color: var(--color-primary);
-    font-weight: 600;
-}
+.ai-suggest-desc { font-size: 0.84rem; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.5; padding: 12px 16px; background: rgba(99,102,241,0.05); border-radius: 8px; border-left: 3px solid var(--color-primary); }
+.ai-suggestions-list { display: flex; flex-direction: column; gap: 12px; }
+.ai-suggestion-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 16px 18px; display: flex; align-items: center; justify-content: space-between; gap: 16px; box-shadow: var(--shadow-card); transition: all 0.2s ease; }
+.ai-suggestion-card:hover { box-shadow: 0 4px 16px rgba(99,102,241,0.12); border-color: rgba(99,102,241,0.25); }
+.ai-suggestion-card.applied { opacity: 0.55; background: rgba(16,185,129,0.04); border-color: rgba(16,185,129,0.2); }
+.ai-suggestion-info { display: flex; flex-direction: column; gap: 5px; flex: 1; }
+.ai-suggestion-title { font-size: 0.95rem; font-weight: 700; color: var(--text-primary); }
+.ai-suggestion-time { display: flex; align-items: center; gap: 6px; font-size: 0.88rem; color: var(--color-primary); font-weight: 600; }
 .ai-suggestion-time i { width: 14px; height: 14px; }
-.ai-duration {
-    font-size: 0.78rem;
-    color: var(--text-muted);
-    font-weight: 400;
-}
-.ai-suggestion-reason {
-    display: flex;
-    align-items: flex-start;
-    gap: 5px;
-    font-size: 0.78rem;
-    color: var(--text-secondary);
-    line-height: 1.4;
-}
+.ai-duration { font-size: 0.78rem; color: var(--text-muted); font-weight: 400; }
+.ai-suggestion-reason { display: flex; align-items: flex-start; gap: 5px; font-size: 0.78rem; color: var(--text-secondary); line-height: 1.4; }
 .ai-suggestion-reason i { width: 13px; height: 13px; flex-shrink: 0; margin-top: 1px; color: #f59e0b; }
-
-.btn-apply-suggestion {
-    font-size: 0.8rem;
-    padding: 7px 14px;
-    white-space: nowrap;
-    flex-shrink: 0;
-}
+.btn-apply-suggestion { font-size: 0.8rem; padding: 7px 14px; white-space: nowrap; flex-shrink: 0; }
 .btn-apply-suggestion i { width: 13px; height: 13px; }
-
-/* メール解析リスト */
-.email-events-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 16px;
-}
-
-/* メール由来の予定カード */
-.email-event-card {
-    display: flex;
-    align-items: flex-start;
-    gap: 14px;
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: var(--border-radius-md);
-    padding: 14px 16px;
-    box-shadow: var(--shadow-card);
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-.email-event-card:hover {
-    border-color: rgba(99, 102, 241, 0.25);
-    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.08);
-}
-
-.email-event-check-wrap {
-    position: relative;
-    width: 18px;
-    height: 18px;
-    flex-shrink: 0;
-    margin-top: 2px;
-}
-.email-event-check-wrap input {
-    position: absolute;
-    opacity: 0;
-    width: 100%;
-    height: 100%;
-    cursor: pointer;
-    z-index: 2;
-}
-.email-event-check-wrap input:checked + .custom-checkbox {
-    background: var(--grad-primary);
-    border-color: transparent;
-}
-.email-event-check-wrap input:checked + .custom-checkbox::after {
-    content: '✓';
-    color: #fff;
-    font-size: 0.72rem;
-    font-weight: bold;
-}
-
-.email-event-info {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    flex: 1;
-}
-.email-event-title {
-    font-size: 0.92rem;
-    font-weight: 700;
-    color: var(--text-primary);
-}
-.email-event-meta {
-    display: flex;
-    gap: 14px;
-    font-size: 0.78rem;
-    color: var(--color-primary);
-    font-weight: 600;
-}
-.email-event-meta span {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
+.email-events-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+.email-event-card { display: flex; align-items: flex-start; gap: 14px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 14px 16px; box-shadow: var(--shadow-card); cursor: pointer; transition: all 0.2s ease; }
+.email-event-card:hover { border-color: rgba(99,102,241,0.25); box-shadow: 0 4px 14px rgba(99,102,241,0.08); }
+.email-event-check-wrap { position: relative; width: 18px; height: 18px; flex-shrink: 0; margin-top: 2px; }
+.email-event-check-wrap input { position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; z-index: 2; }
+.email-event-check-wrap input:checked + .custom-checkbox { background: var(--grad-primary); border-color: transparent; }
+.email-event-check-wrap input:checked + .custom-checkbox::after { content: '✓'; color: #fff; font-size: 0.72rem; font-weight: bold; }
+.email-event-info { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.email-event-title { font-size: 0.92rem; font-weight: 700; color: var(--text-primary); }
+.email-event-meta { display: flex; gap: 14px; font-size: 0.78rem; color: var(--color-primary); font-weight: 600; }
+.email-event-meta span { display: flex; align-items: center; gap: 4px; }
 .email-event-meta i { width: 12px; height: 12px; }
-.email-event-desc {
-    font-size: 0.78rem;
-    color: var(--text-secondary);
-}
-.email-event-from {
-    font-size: 0.72rem;
-    color: var(--text-muted);
-    font-style: italic;
-}
-
-/* メール解析アクション */
-.email-parse-actions {
-    display: flex;
-    justify-content: flex-end;
-    padding-top: 12px;
-    border-top: 1px solid rgba(0,0,0,0.05);
-}
+.email-event-desc { font-size: 0.78rem; color: var(--text-secondary); }
+.email-event-from { font-size: 0.72rem; color: var(--text-muted); font-style: italic; }
+.email-parse-actions { display: flex; justify-content: flex-end; padding-top: 12px; border-top: 1px solid rgba(0,0,0,0.05); }
