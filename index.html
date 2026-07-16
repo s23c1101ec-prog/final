@@ -28,7 +28,7 @@
         </header>
 
         <!-- 固定フローティングボタン（常に右上表示） -->
-        <button id="btn-new-item" class="btn-fab" title="新規予定・タスクを追加">
+        <button id="btn-new-item" class="btn-fab-header" title="新規予定・タスクを追加">
             <span class="fab-icon"><i data-lucide="plus"></i></span>
             <span class="fab-label">新規作成</span>
         </button>
@@ -170,7 +170,7 @@
                                 <input type="password" id="claude-api-key" placeholder="sk-ant-api03-...">
                                 <span class="help-text">※ APIキーはブラウザのローカルストレージにのみ保存され、Claude API呼び出し時にのみ使用されます</span>
                             </div>
-                            <button type="button" id="btn-save-claude-key" class="btn btn-primary">
+                            <button type="button" id="btn-save-claude-key" class="btn-fab-header">
                                 <i data-lucide="save"></i> 保存する
                             </button>
                         </div>
@@ -345,7 +345,7 @@
                     </button>
                     <div class="footer-right">
                         <button type="button" id="btn-cancel" class="btn btn-secondary">キャンセル</button>
-                        <button type="submit" id="btn-save" class="btn btn-primary">保存する</button>
+                        <button type="submit" id="btn-save" class="btn-fab-header">保存する</button>
                     </div>
                 </div>
             </form>
