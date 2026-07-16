@@ -311,3 +311,5 @@
 .email-event-desc { font-size: 0.78rem; color: var(--text-secondary); }
 .email-event-from { font-size: 0.72rem; color: var(--text-muted); font-style: italic; }
 .email-parse-actions { display: flex; justify-content: flex-end; padding-top: 12px; border-top: 1px solid rgba(0,0,0,0.05); }
+
+/* V6 */.btn-fab-header{display:flex;align-items:center;gap:7px;padding:9px 20px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;border-radius:50px;font-size:.92rem;font-weight:700;font-family:inherit;cursor:pointer;box-shadow:0 3px 14px rgba(16,185,129,.5);transition:all .2s;white-space:nowrap;flex-shrink:0;}.btn-fab-header:hover{transform:translateY(-1px) scale(1.03)}.btn-fab-header i{width:16px;height:16px}
